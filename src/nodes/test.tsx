@@ -5,6 +5,8 @@ import {
 } from "rete-react-plugin"
 
 import styles from './test.module.css'
+import { BaseSchemes, ClassicPreset } from "rete"
+import { AreaPlugin } from "rete-area-plugin"
 
 const {
 	RefControl,
@@ -20,10 +22,87 @@ export type NodeComponent<Scheme extends ClassicScheme> = (
   props: Props<Scheme>
 ) => JSX.Element
 
-export default function TestNode<Scheme extends ClassicScheme>(props: Props<Scheme>) {
-  const inputs = Object.entries(props.data.inputs)
+export class ScopedRangeControl extends ClassicPreset.Control {
+	constructor(
+		public label: string,
+		public context: string,
+		public min: number,
+		public max: number,
+		public current: number,
+		public change: (field: string, value: number) => void,
+	) { super() }
+}
+
+export function ScopedRange(props: {
+	data: ScopedRangeControl
+}) {
+	const {
+		context,
+		label,
+		min,
+		max,
+		current,
+		change,
+	} = props.data || {}
+
+	const cls = `${context}-${label}`.toLocaleLowerCase()
+
+	return <div className={cls}>
+		<h4>{label}</h4>
+		<div className="inputs">
+			<input type="number"
+				value={min}
+				onChange={ e => change('min', e.currentTarget.valueAsNumber)}
+				className={`${cls}-min`}
+			/>
+			<input type="number"
+				value={current}
+				onChange={ e => change('current', e.currentTarget.valueAsNumber)}
+				className={`${cls}-current`}
+			/>
+			<input type="number"
+				value={max}
+				onChange={ e => change('max', e.currentTarget.valueAsNumber)}
+				className={`${cls}-max`}
+			/>
+			<input type="range"
+				min={min}
+				max={max}
+				value={current}
+				step={.00001}
+				onChange={ e => change('current', e.currentTarget.valueAsNumber)}
+				className={`${cls}-range`}
+				onPointerDown={e => e.stopPropagation()}
+			/>
+		</div>
+	</div>
+}
+
+const socket = new ClassicPreset.Socket('socket')
+
+export class TransformNode<S extends BaseSchemes, A> extends ClassicPreset.Node {
+	constructor(area: AreaPlugin<S, A>) {
+		super('Transform')
+
+		this.addOutput('foo', new ClassicPreset.Output(socket, 'foo'))
+
+		const translationX = new ScopedRangeControl('translation', 'X', -1, 1, 0,
+			function (field: string, value: number) {
+				// @ts-expect-error Fuck you
+				translationX[field] = value
+				area.update('control', translationX.id)
+			})
+		this.addControl('translation-x', translationX)
+		// this.addControl('translation-x-max', new ClassicPreset.InputControl('number'))
+		// this.addControl('translation-x-val', new ClassicPreset.InputControl('number'))
+		// this.addControl('translation-x-range', new ClassicPreset.InputControl('number'))
+	}
+}
+
+export function RenderTransformNode<Scheme extends ClassicScheme>(props: Props<Scheme>) {
+  // const inputs = Object.entries(props.data.inputs)
   const outputs = Object.entries(props.data.outputs)
-  const controls = Object.entries(props.data.controls)
+  // const controls = Object.entries(props.data.controls)
   const { id, label } = props.data
 
   return (
@@ -48,16 +127,41 @@ export default function TestNode<Scheme extends ClassicScheme>(props: Props<Sche
         </div>
       )}
       {/* Controls */}
-      {controls.map(([key, control]) => control ? (
-        <RefControl
-          key={key}
-          name="control"
-          emit={props.emit}
-          payload={control}
-        />
-      ) : null)}
+     	<ul>
+    		<li>
+	      	<h3>Translation</h3>
+      		<ol>
+		        <RefControl
+							key="translation-x"
+							name="control"
+							emit={props.emit}
+							payload={props.data.controls['translation-x']!}
+						/>
+					</ol>
+        </li>
+				<li>
+	      	<h3>Scale</h3>
+        </li>
+				<li>
+	      	<h3>Anchor</h3>
+        </li>
+				<li>
+	      	<h3>Rotation</h3>
+        </li>
+       </ul>
+			{/* controls.map(([key, control]) => {
+				console.log(key, control)
+				return control ? (
+					<RefControl
+						key={key}
+						name="control"
+						emit={props.emit}
+						payload={control}
+					/>
+				) : null
+			}) */}
       {/* Inputs */}
-      {inputs.map(([key, input]) => input &&
+      {/* inputs.map(([key, input]) => input &&
 				<div className={styles.input} key={key}>
           <RefSocket
 						name={styles.inputSocket}
@@ -83,7 +187,7 @@ export default function TestNode<Scheme extends ClassicScheme>(props: Props<Sche
             </span>
           )}
         </div>
-      )}
+      ) */}
     </div>
   )
 }

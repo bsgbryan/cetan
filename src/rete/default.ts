@@ -1,5 +1,4 @@
 import {
-	ClassicPreset as Classic,
 	ClassicPreset,
 	GetSchemes,
 	NodeEditor,
@@ -22,7 +21,7 @@ import {
 } from 'rete-react-plugin'
 
 import { createRoot } from 'react-dom/client'
-import TestNode from '../nodes/test'
+import { RenderTransformNode, ScopedRange, ScopedRangeControl, TransformNode } from '../nodes/test'
 
 type Schemes = GetSchemes<
   ClassicPreset.Node,
@@ -80,9 +79,19 @@ export async function createEditor(container: HTMLElement) {
   connection.addPreset(ConnectionPresets.classic.setup())
   reactRender.addPreset(ReactPresets.classic.setup({
     customize: {
+	    control(data) {
+	      if (data.payload instanceof ScopedRangeControl) {
+	        return ScopedRange;
+	      }
+	
+	      return null;
+	    },
       node(context) {
         if (context.payload.label === 'test') {
-          return TestNode;
+          return RenderTransformNode;
+        }
+        else if (context.payload.label === 'Transform') {
+          return RenderTransformNode;
         }
 
         return ReactPresets.classic.Node;
@@ -90,12 +99,7 @@ export async function createEditor(container: HTMLElement) {
     },
   }))
 
-	const test1 = new ClassicPreset.Node('test')
-
-	test1.addOutput('a', new ClassicPreset.Output(socket, 'foo'))
-	test1.addInput('a', new ClassicPreset.Input(socket, 'bar'))
-	test1.addControl('a', new ClassicPreset.InputControl("number"))
-	
+	const test1 = new TransformNode<Schemes, AreaExtra>(area)
   await editor.addNode(test1)
 
   const test2 = new ClassicPreset.Node('test')
