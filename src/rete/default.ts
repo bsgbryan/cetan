@@ -102,15 +102,7 @@ export async function createEditor(container: HTMLElement) {
 	const test1 = new TransformNode<Schemes, AreaExtra>(area)
   await editor.addNode(test1)
 
-  const test2 = new ClassicPreset.Node('test')
-
-	test2.addOutput('a', new ClassicPreset.Output(socket, 'foo'))
-	test2.addInput('a', new ClassicPreset.Input(socket, 'bar'))
-
-  await editor.addNode(test2)
-
   await area.nodeViews.get(test1.id)?.translate(100, 100)
-  await area.nodeViews.get(test2.id)?.translate(400, 100)
 
   return {
     destroy: () => area.destroy(),
