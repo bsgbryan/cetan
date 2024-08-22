@@ -21,7 +21,7 @@ import {
 } from 'rete-react-plugin'
 
 import { createRoot } from 'react-dom/client'
-import { RenderTransformNode, ScopedRange, ScopedRangeControl, TransformNode } from '../nodes/test'
+import { RenderTransformNode, ScopedRange, ScopedRangeControl, TransformNode } from '../nodes/transform'
 
 type Schemes = GetSchemes<
   ClassicPreset.Node,
@@ -83,7 +83,7 @@ export async function createEditor(container: HTMLElement) {
 	      if (data.payload instanceof ScopedRangeControl) {
 	        return ScopedRange;
 	      }
-	
+
 	      return null;
 	    },
       node(context) {
@@ -110,7 +110,7 @@ export async function createEditor(container: HTMLElement) {
   await editor.addNode(test2)
 
   await area.nodeViews.get(test1.id)?.translate(100, 100)
-  await area.nodeViews.get(test2.id)?.translate(300, 100)
+  await area.nodeViews.get(test2.id)?.translate(400, 100)
 
   return {
     destroy: () => area.destroy(),

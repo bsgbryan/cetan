@@ -4,7 +4,7 @@ import {
 	RenderEmit,
 } from "rete-react-plugin"
 
-import styles from './test.module.css'
+import styles from './transform.module.css'
 import { BaseSchemes, ClassicPreset } from "rete"
 import { AreaPlugin } from "rete-area-plugin"
 
@@ -47,23 +47,23 @@ export function ScopedRange(props: {
 
 	const cls = `${context}-${label}`.toLocaleLowerCase()
 
-	return <div className={cls}>
+	return <div className={`${styles.scopedRange} ${cls}`}>
 		<h4>{label}</h4>
-		<div className="inputs">
+		<div className={styles.inputs}>
 			<input type="number"
 				value={min}
 				onChange={ e => change('min', e.currentTarget.valueAsNumber)}
-				className={`${cls}-min`}
+				className={styles.scopedMin}
 			/>
 			<input type="number"
 				value={current}
 				onChange={ e => change('current', e.currentTarget.valueAsNumber)}
-				className={`${cls}-current`}
+				className={styles.scopedCurrent}
 			/>
 			<input type="number"
 				value={max}
 				onChange={ e => change('max', e.currentTarget.valueAsNumber)}
-				className={`${cls}-max`}
+				className={styles.scopedMax}
 			/>
 			<input type="range"
 				min={min}
@@ -71,7 +71,7 @@ export function ScopedRange(props: {
 				value={current}
 				step={.00001}
 				onChange={ e => change('current', e.currentTarget.valueAsNumber)}
-				className={`${cls}-range`}
+				className={styles.scopedValueRange}
 				onPointerDown={e => e.stopPropagation()}
 			/>
 		</div>
@@ -86,16 +86,29 @@ export class TransformNode<S extends BaseSchemes, A> extends ClassicPreset.Node 
 
 		this.addOutput('foo', new ClassicPreset.Output(socket, 'foo'))
 
-		const translationX = new ScopedRangeControl('translation', 'X', -1, 1, 0,
+		const translationX = new ScopedRangeControl('X', 'translation', -1, 1, 0,
 			function (field: string, value: number) {
 				// @ts-expect-error Fuck you
 				translationX[field] = value
 				area.update('control', translationX.id)
 			})
 		this.addControl('translation-x', translationX)
-		// this.addControl('translation-x-max', new ClassicPreset.InputControl('number'))
-		// this.addControl('translation-x-val', new ClassicPreset.InputControl('number'))
-		// this.addControl('translation-x-range', new ClassicPreset.InputControl('number'))
+
+		const translationY = new ScopedRangeControl('Y', 'translation', -1, 1, 0,
+			function (field: string, value: number) {
+				// @ts-expect-error Fuck you
+				translationY[field] = value
+				area.update('control', translationY.id)
+			})
+		this.addControl('translation-y', translationY)
+
+		const translationZ = new ScopedRangeControl('Z', 'translation', -1, 1, 0,
+			function (field: string, value: number) {
+				// @ts-expect-error Fuck you
+				translationZ[field] = value
+				area.update('control', translationZ.id)
+			})
+		this.addControl('translation-z', translationZ)
 	}
 }
 
@@ -106,10 +119,10 @@ export function RenderTransformNode<Scheme extends ClassicScheme>(props: Props<S
   const { id, label } = props.data
 
   return (
-    <div className={styles.test}>
-      <div className={styles.title}>
+    <div className={styles.transform}>
+      <h2 className={styles.title}>
         {label}
-      </div>
+      </h2>
       {/* Outputs */}
       {outputs.map(([key, output]) => output &&
       	<div className={styles.output} key={key}>
@@ -131,12 +144,30 @@ export function RenderTransformNode<Scheme extends ClassicScheme>(props: Props<S
     		<li>
 	      	<h3>Translation</h3>
       		<ol>
-		        <RefControl
-							key="translation-x"
-							name="control"
-							emit={props.emit}
-							payload={props.data.controls['translation-x']!}
-						/>
+						<li>
+			        <RefControl
+								key="translation-x"
+								name="control"
+								emit={props.emit}
+								payload={props.data.controls['translation-x']!}
+							/>
+						</li>
+						<li>
+							<RefControl
+								key="translation-y"
+								name="control"
+								emit={props.emit}
+								payload={props.data.controls['translation-y']!}
+							/>
+						</li>
+						<li>
+							<RefControl
+								key="translation-z"
+								name="control"
+								emit={props.emit}
+								payload={props.data.controls['translation-z']!}
+							/>
+						</li>
 					</ol>
         </li>
 				<li>
